@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+repositories {
+    mavenCentral()
+}
+dependencies {
+    testImplementation 'com.codeborne:selenide:7.5.0'
+    testImplementation group: 'org.testng', name: 'testng', version: '7.10.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.7'
+
+}
+test {
+    useTestNG()
+}
