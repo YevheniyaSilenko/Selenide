@@ -8,32 +8,35 @@ import static com.codeborne.selenide.Condition.*;
 
 public class WinningMovieTest {
 
+    private static final String MOVIE_TITLE = "Titanic";
+    private static final String MOVIE_YEAR = "1997";
+    private static final String MOVIE_URL = "/title/tt0120338/";
+    private static final String AWARDS_TEXT = "Won 11 Oscars";
+
     @BeforeClass
     public void setUp() {
         Configuration.browserSize = "1920x1080";
-        Configuration.timeout = 10000; // Таймаут на 10 секунд
+        Configuration.timeout = 10000;
         Configuration.browser = "chrome";
     }
 
     @Test
     public void testSearchForTitanic() {
 
-        // Відкриття IMDb з примусовою зміною мови на англійську
         open("https://www.imdb.com");
-        // Пошук фільму "Titanic"
-        $("input[name='q']").setValue("Titanic").pressEnter();
 
-        // Клік на фільм "Титанік" (1997)
-        $("a[href*='/title/tt0120338/']").click();
+        $("input[name='q']").setValue(MOVIE_TITLE).pressEnter();
 
-        // Перевірка, що сторінка фільму завантажилася (перевірка наявності заголовка або іншого елемента сторінки)
-        $("h1").shouldHave(text("Титанік"));
+        $$(".ipc-metadata-list-summary-item .ipc-metadata-list-summary-item__c")
+                .find(text(MOVIE_TITLE)).shouldHave(text(MOVIE_YEAR)).click();
 
-        // Знаходження та скрол до посилання на нагороди
-        SelenideElement awardsLink = $("a[href='/title/tt0120338/awards/?ref_=tt_awd']");
-        awardsLink.scrollIntoView(true).click();
+        SelenideElement pageHeader = $("h1");
+        pageHeader.shouldHave(text(MOVIE_TITLE));
 
-        // Перевірка, що відкрилося посилання з нагородами
+        SelenideElement awardsLink = $("[data-testid='awards']");
+        awardsLink.shouldBe(visible, enabled)
+                .shouldHave(text(AWARDS_TEXT)).scrollIntoView(true).click();
+
         $("h1").shouldHave(text("Awards"));
     }
 }
