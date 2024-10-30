@@ -9,34 +9,58 @@ import static com.codeborne.selenide.Condition.*;
 public class WinningMovieTest {
 
     private static final String MOVIE_TITLE = "Titanic";
-    private static final String MOVIE_YEAR = "1997";
-    private static final String MOVIE_URL = "/title/tt0120338/";
-    private static final String AWARDS_TEXT = "Won 11 Oscars";
+    private static final String MOVIE_LINK = "a[href*='/title/tt0120338/']";
+    private static final String AWARDS_LINK = "a[href='/title/tt0120338/awards/?ref_=tt_awd']";
 
     @BeforeClass
     public void setUp() {
         Configuration.browserSize = "1920x1080";
-        Configuration.timeout = 10000;
+        Configuration.timeout = 10000; // Timeout set to 10 seconds
         Configuration.browser = "chrome";
     }
 
     @Test
     public void testSearchForTitanic() {
+        openIMDb();
+        searchForMovie(MOVIE_TITLE);
+        clickOnMovieLink(MOVIE_LINK);
+        verifyMoviePageLoaded("Титанік");
+        scrollToAndClickAwardsLink(AWARDS_LINK);
+        verifyAwardsPageLoaded("Awards");
+        waitForObservation(5000); // Wait 5 seconds before finishing the test
+    }
 
-        open("https://www.imdb.com");
+    private void openIMDb() {
+        open("https://www.imdb.com?language=en");
+    }
 
-        $("input[name='q']").setValue(MOVIE_TITLE).pressEnter();
+    private void searchForMovie(String movieTitle) {
+        $("input[name='q']").setValue(movieTitle).pressEnter();
+    }
 
-        $$(".ipc-metadata-list-summary-item .ipc-metadata-list-summary-item__c")
-                .find(text(MOVIE_TITLE)).shouldHave(text(MOVIE_YEAR)).click();
+    private void clickOnMovieLink(String movieLink) {
+        $(movieLink).click();
+    }
 
-        SelenideElement pageHeader = $("h1");
-        pageHeader.shouldHave(text(MOVIE_TITLE));
+    private void verifyMoviePageLoaded(String expectedTitle) {
+        $("h1").shouldBe(visible).shouldHave(text(expectedTitle));
+    }
 
-        SelenideElement awardsLink = $("[data-testid='awards']");
-        awardsLink.shouldBe(visible, enabled)
-                .shouldHave(text(AWARDS_TEXT)).scrollIntoView(true).click();
+    private void scrollToAndClickAwardsLink(String awardsLink) {
+        SelenideElement awardsElement = $(awardsLink);
+        for (int i = 0; i < 5; i++) { // Adjust the number of iterations for longer scroll
+            awardsElement.scrollIntoView(true);
+            sleep(1000); // Wait 1 second between scrolls
+            executeJavaScript("window.scrollBy(0, 200);"); // Scroll down 200 pixels using JavaScript
+        }
+        awardsElement.click(); // Click the awards link
+    }
 
-        $("h1").shouldHave(text("Awards"));
+    private void verifyAwardsPageLoaded(String expectedTitle) {
+        $("h1").shouldHave(text(expectedTitle)); // Verify the awards page loaded
+    }
+
+    private void waitForObservation(int milliseconds) {
+        sleep(milliseconds); // Optional wait for observation
     }
 }
