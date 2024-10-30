@@ -15,7 +15,7 @@ public class WinningMovieTest {
     @BeforeClass
     public void setUp() {
         Configuration.browserSize = "1920x1080";
-        Configuration.timeout = 10000; // Timeout set to 10 seconds
+        Configuration.timeout = 10000;
         Configuration.browser = "chrome";
     }
 
