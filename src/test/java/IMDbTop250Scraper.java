@@ -19,10 +19,11 @@ public class IMDbTop250Scraper {
 
         ElementsCollection movieElements = $$("li.ipc-metadata-list-summary-item");
 
-        System.out.println("Founded movies: " + movieElements.size());
+        System.out.println("Found movies: " + movieElements.size());
         movieElements.shouldHave(CollectionCondition.sizeGreaterThan(0));
 
-        List<Movie> movies = new ArrayList<>();
+        List<String> movieData = new ArrayList<>();
+        List<Double> ratings = new ArrayList<>();
 
         for (SelenideElement movieElement : movieElements.first(20)) {
             try {
@@ -33,39 +34,24 @@ public class IMDbTop250Scraper {
                 String ratingText = movieElement.$("span.ipc-rating-star--rating").getText();
                 double rating = Double.parseDouble(ratingText);
 
-                movies.add(new Movie(title, year, rating));
+                movieData.add(String.format("%s (%d) - %.1f", title, year, rating));
+                ratings.add(rating);
             } catch (Exception e) {
-                System.out.println("Error between data of movies: " + e.getMessage());
+                System.out.println("Error processing movie data: " + e.getMessage());
             }
         }
 
-        for (int i = 0; i < 5 && i < movies.size(); i++) {
-            System.out.println(movies.get(i));
+        // Print the first 5 movies
+        for (int i = 0; i < 5 && i < movieData.size(); i++) {
+            System.out.println(movieData.get(i));
         }
 
-        double averageRating = movies.stream().mapToDouble(Movie::getRating).average().orElse(0.0);
-        System.out.println("Mid rate of movies: " + averageRating);
+        // Calculate average rating using the separate ratings list
+        double averageRating = ratings.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        System.out.println("Average movie rating: " + averageRating);
     }
 }
-class Movie {
-    private final String title;//Only Ukranian language
-    private final int year;
-    private final double rating;
-
-
-    public Movie(String title, int year, double rating) {
-        this.title = title;
-        this.year = year;
-        this.rating = rating;
-    }
-
-    public double getRating() {
-        return rating;
-    }
-
-    @Override
-    public String toString() {
-        return title + " (" + year + ") - " + rating;
-    }
-}
-

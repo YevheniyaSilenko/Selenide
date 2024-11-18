@@ -10,15 +10,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.codeborne:selenide:6.19.1'
-    implementation 'org.slf4j:slf4j-api:2.0.7'
-    implementation 'ch.qos.logback:logback-classic:1.4.11'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testImplementation 'org.assertj:assertj-core:3.24.2'
-    testImplementation 'org.testng:testng:7.7.0'  // Додаємо TestNG
+    implementation 'com.codeborne:selenide:6.19.1' // Core Selenide library
+    implementation 'com.codeborne:selenide-testng:6.19.1' // TestNG-Selenide integration
+    testImplementation 'org.testng:testng:7.7.0' // TestNG framework
+    implementation 'org.slf4j:slf4j-api:2.0.7' // Logging
+    implementation 'ch.qos.logback:logback-classic:1.4.11' // Logback implementation for SLF4J
+
+
 }
 
 test {
-    useJUnitPlatform()
+    useTestNG() // Configure Gradle to use TestNG
 }
