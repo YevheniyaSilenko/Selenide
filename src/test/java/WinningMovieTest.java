@@ -27,7 +27,7 @@ public class WinningMovieTest {
         verifyMoviePageLoaded("Титанік");
         scrollToAndClickAwardsLink(AWARDS_LINK);
         verifyAwardsPageLoaded("Awards");
-        waitForObservation(5000); // Wait 5 seconds before finishing the test
+        waitForObservation(5000);
     }
 
     private void openIMDb() {
@@ -48,19 +48,20 @@ public class WinningMovieTest {
 
     private void scrollToAndClickAwardsLink(String awardsLink) {
         SelenideElement awardsElement = $(awardsLink);
-        for (int i = 0; i < 5; i++) { // Adjust the number of iterations for longer scroll
+        for (int i = 0; i < 5; i++) {
             awardsElement.scrollIntoView(true);
-            sleep(1000); // Wait 1 second between scrolls
-            executeJavaScript("window.scrollBy(0, 200);"); // Scroll down 200 pixels using JavaScript
+            sleep(1000);
+            executeJavaScript("window.scrollBy(0, 200);");
         }
-        awardsElement.click(); // Click the awards link
+        awardsElement.click();
     }
 
     private void verifyAwardsPageLoaded(String expectedTitle) {
-        $("h1").shouldHave(text(expectedTitle)); // Verify the awards page loaded
+        $("h1").shouldHave(text(expectedTitle));
     }
 
     private void waitForObservation(int milliseconds) {
-        sleep(milliseconds); // Optional wait for observation
+        sleep(milliseconds);
     }
 }
+

@@ -1,16 +1,25 @@
 plugins {
     id 'java'
 }
+
 repositories {
     mavenCentral()
 }
-dependencies {
-    testImplementation 'com.codeborne:selenide:7.5.0'
-    testImplementation group: 'org.testng', name: 'testng', version: '7.10.2'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.slf4j:slf4j-simple:2.0.7'
 
+dependencies {
+    // Selenium для автоматизації
+    implementation 'org.seleniumhq.selenium:selenium-java:4.12.0'
+
+    // Selenide для спрощення роботи із Selenium
+    implementation 'com.codeborne:selenide:6.18.0'
+
+    // WebDriverManager для автоматичного завантаження драйверів
+    implementation 'io.github.bonigarcia:webdrivermanager:5.5.3'
+
+    // TestNG для тестування
+    testImplementation 'org.testng:testng:7.9.0'
 }
+
 test {
-    useTestNG()
+    useTestNG() // Додає підтримку TestNG
 }
