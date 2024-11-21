@@ -7,19 +7,11 @@ repositories {
 }
 
 dependencies {
-    // Selenium для автоматизації
     implementation 'org.seleniumhq.selenium:selenium-java:4.12.0'
-
-    // Selenide для спрощення роботи із Selenium
     implementation 'com.codeborne:selenide:6.18.0'
-
-    // WebDriverManager для автоматичного завантаження драйверів
-    implementation 'io.github.bonigarcia:webdrivermanager:5.5.3'
-
-    // TestNG для тестування
     testImplementation 'org.testng:testng:7.9.0'
 }
 
 test {
-    useTestNG() // Додає підтримку TestNG
+    useTestNG()
 }
