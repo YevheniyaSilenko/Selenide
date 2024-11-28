@@ -13,7 +13,7 @@ public class TitanicWinningTest {
     private static final String AWARDS_SELECTOR = "[data-testid='awards']";
 
     private static final Map<String, String> MOVIE_TITLES = Map.of(
-            "en", "Titanic",
+            "en", TITANIC,
             "uk", "Титанік"
     );
 
@@ -55,7 +55,7 @@ public class TitanicWinningTest {
         $$(".ipc-metadata-list-summary-item .ipc-metadata-list-summary-item__c")
                 .find(text(movieYear))
                 .shouldHave(text(getLocalizedTitle()))
-                .scrollIntoView(true) // Прокрутка до елементу
+                .scrollIntoView(true)
                 .click();
     }
 
@@ -64,13 +64,13 @@ public class TitanicWinningTest {
     }
 
     private void navigateToAwardsPage() {
-        SelenideElement awardsElement = $(AWARDS_SELECTOR);
-        awardsElement.scrollIntoView(true);
-        awardsElement.shouldBe(visible, enabled).click();
+        $(AWARDS_SELECTOR)
+                .scrollIntoView(true)
+                .shouldBe(visible, enabled)
+                .click();
     }
 
     private String getLocalizedTitle() {
-        String language = getCurrentLanguage();
-        return MOVIE_TITLES.getOrDefault(language, "Titanic");
+        return MOVIE_TITLES.getOrDefault(getCurrentLanguage(), TITANIC);
     }
 }
