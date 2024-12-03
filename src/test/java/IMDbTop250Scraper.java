@@ -9,7 +9,6 @@ public class IMDbTop250Scraper {
         try {
             openIMDbHomePage();
             navigateToTop250();
-
             scrapeTopMovies();
         } catch (Exception e) {
             logError("Error occurred during the scraping process: " + e.getMessage());
@@ -24,24 +23,45 @@ public class IMDbTop250Scraper {
 
         System.out.println("Top 5 Movies:");
         for (int i = 0; i < 5; i++) {
-
             MovieDetails movie = getMovieDetails(i);
 
-            if (seenTitles.contains(movie.title)) {
-                System.err.println("Duplicate found: " + movie.title);
+            if (isDuplicate(seenTitles, movie)) {
                 continue;
-            } else {
-                seenTitles.add(movie.title);
             }
 
-            if (movie.rating != -1) {
-                totalRating += movie.rating;
-                validRatingsCount++;
-            }
+            totalRating = updateRatingTotal(movie, totalRating);
+            validRatingsCount = incrementValidRatingsCount(movie, validRatingsCount);
 
             printMovieDetails(i, movie);
         }
 
+        printAverageRating(validRatingsCount, totalRating);
+    }
+
+    private static boolean isDuplicate(Set<String> seenTitles, MovieDetails movie) {
+        if (seenTitles.contains(movie.title)) {
+            System.err.println("Duplicate found: " + movie.title);
+            return true;
+        }
+        seenTitles.add(movie.title);
+        return false;
+    }
+
+    private static double updateRatingTotal(MovieDetails movie, double totalRating) {
+        if (movie.rating != -1) {
+            totalRating += movie.rating;
+        }
+        return totalRating;
+    }
+
+    private static int incrementValidRatingsCount(MovieDetails movie, int validRatingsCount) {
+        if (movie.rating != -1) {
+            validRatingsCount++;
+        }
+        return validRatingsCount;
+    }
+
+    private static void printAverageRating(int validRatingsCount, double totalRating) {
         if (validRatingsCount > 0) {
             System.out.printf("Average Rating: %.2f%n", totalRating / validRatingsCount);
         } else {
@@ -77,6 +97,10 @@ public class IMDbTop250Scraper {
             return -1; // Return -1 if rating is missing
         }
 
+        return parseRating(ratingText, index);
+    }
+
+    private static double parseRating(String ratingText, int index) {
         try {
             return Double.parseDouble(ratingText.substring(0, Math.min(ratingText.indexOf('.') + 3, ratingText.length())));
         } catch (NumberFormatException e) {
@@ -94,7 +118,6 @@ public class IMDbTop250Scraper {
         $("a[href='/chart/top/?ref_=nv_mv_250']").shouldBe(visible).click();
         $("h1.ipc-title__text").shouldBe(visible);
     }
-
 
     private static void logError(String message) {
         System.err.println(message);
