@@ -11,8 +11,7 @@ public class IMDbTop250Scraper {
             navigateToTop250();
             scrapeTopMovies();
         } catch (Exception e) {
-            logError("Error occurred during the scraping process: " + e.getMessage());
-            e.printStackTrace();
+            handleError(e);
         }
     }
 
@@ -23,42 +22,34 @@ public class IMDbTop250Scraper {
 
         System.out.println("Top 5 Movies:");
         for (int i = 0; i < 5; i++) {
-            MovieDetails movie = getMovieDetails(i);
+            String title = getMovieTitle(i);
+            String releaseYear = getReleaseYear(i);
+            double rating = getMovieRating(i);
 
-            if (isDuplicate(seenTitles, movie)) {
+            if (isDuplicateTitle(seenTitles, title)) {
+                System.err.println("Duplicate found: " + title);
                 continue;
             }
 
-            totalRating = updateRatingTotal(movie, totalRating);
-            validRatingsCount = incrementValidRatingsCount(movie, validRatingsCount);
+            seenTitles.add(title);
 
-            printMovieDetails(i, movie);
+            if (rating != -1) {
+                totalRating += rating;
+                validRatingsCount++;
+            }
+
+            printMovieDetails(i, title, releaseYear, rating);
         }
 
         printAverageRating(validRatingsCount, totalRating);
     }
 
-    private static boolean isDuplicate(Set<String> seenTitles, MovieDetails movie) {
-        if (seenTitles.contains(movie.title)) {
-            System.err.println("Duplicate found: " + movie.title);
-            return true;
-        }
-        seenTitles.add(movie.title);
-        return false;
+    private static boolean isDuplicateTitle(Set<String> seenTitles, String title) {
+        return seenTitles.contains(title);
     }
 
-    private static double updateRatingTotal(MovieDetails movie, double totalRating) {
-        if (movie.rating != -1) {
-            totalRating += movie.rating;
-        }
-        return totalRating;
-    }
-
-    private static int incrementValidRatingsCount(MovieDetails movie, int validRatingsCount) {
-        if (movie.rating != -1) {
-            validRatingsCount++;
-        }
-        return validRatingsCount;
+    private static void printMovieDetails(int index, String title, String releaseYear, double rating) {
+        System.out.printf("%d. %s (%s) - Rating: %.1f%n", index + 1, title, releaseYear, rating);
     }
 
     private static void printAverageRating(int validRatingsCount, double totalRating) {
@@ -67,18 +58,6 @@ public class IMDbTop250Scraper {
         } else {
             System.out.println("No valid ratings found.");
         }
-    }
-
-    private static MovieDetails getMovieDetails(int index) {
-        String title = getMovieTitle(index);
-        String releaseYear = getReleaseYear(index);
-        double rating = getMovieRating(index);
-
-        return new MovieDetails(title, releaseYear, rating);
-    }
-
-    private static void printMovieDetails(int index, MovieDetails movie) {
-        System.out.printf("%d. %s (%s) - Rating: %.1f%n", index + 1, movie.title, movie.releaseYear, movie.rating);
     }
 
     private static String getMovieTitle(int index) {
@@ -90,22 +69,23 @@ public class IMDbTop250Scraper {
     }
 
     private static double getMovieRating(int index) {
-        String ratingText = $("ul > li:nth-child(" + (index + 1) + ") div.ipc-metadata-list-summary-item__c > div > div > span > div").getText().replaceAll("[^0-9.]", "");
+        String ratingText = $("ul > li:nth-child(" + (index + 1) + ") div.ipc-metadata-list-summary-item__c > div > div > span > div")
+                .getText().replaceAll("[^0-9.]", "");
 
         if (ratingText.isEmpty()) {
-            logError("Rating not found for movie at index " + index);
-            return -1; // Return -1 if rating is missing
+            System.err.println("Rating not found for movie at index " + index);
+            return -1;
         }
 
-        return parseRating(ratingText, index);
+        return parseRating(ratingText);
     }
 
-    private static double parseRating(String ratingText, int index) {
+    private static double parseRating(String ratingText) {
         try {
             return Double.parseDouble(ratingText.substring(0, Math.min(ratingText.indexOf('.') + 3, ratingText.length())));
         } catch (NumberFormatException e) {
-            logError("Error parsing rating for movie at index " + index);
-            return -1; // Return -1 if parsing fails
+            System.err.println("Error parsing rating.");
+            return -1;
         }
     }
 
@@ -119,19 +99,8 @@ public class IMDbTop250Scraper {
         $("h1.ipc-title__text").shouldBe(visible);
     }
 
-    private static void logError(String message) {
-        System.err.println(message);
-    }
-
-    static class MovieDetails {
-        String title;
-        String releaseYear;
-        double rating;
-
-        MovieDetails(String title, String releaseYear, double rating) {
-            this.title = title;
-            this.releaseYear = releaseYear;
-            this.rating = rating;
-        }
+    private static void handleError(Exception e) {
+        System.err.println("Error occurred during the scraping process: " + e.getMessage());
+        e.printStackTrace();
     }
 }
