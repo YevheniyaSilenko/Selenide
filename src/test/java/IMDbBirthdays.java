@@ -25,7 +25,7 @@ public class IMDbBirthdays {
         openIMDbHomepage();
         openBornTodayMenu();
         ElementsCollection celebrities = fetchCelebrityElements();
-        printCelebrityInfo(celebrities, 3);
+        printCelebrityInfo(celebrities);
     }
 
     private void openIMDbHomepage() {
@@ -78,8 +78,8 @@ public class IMDbBirthdays {
         }
     }
 
-    private void printCelebrityInfo(ElementsCollection celebrities, int limit) {
-        for (int i = 0; i < Math.min(limit, celebrities.size()); i++) {
+    private void printCelebrityInfo(ElementsCollection celebrities) {
+        for (int i = 0; i < Math.min(3, celebrities.size()); i++) {
             WebElement celebrity = celebrities.get(i);
             String name = getCelebrityName(celebrity);
             String professions = getCelebrityProfessions(celebrity);
