@@ -1,94 +1,133 @@
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class IMDbBirthdays {
 
-    private WebDriver driver;
-    private WebDriverWait wait;
-
     @BeforeClass
     public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "/opt/homebrew/bin/chromedriver"); // Замість цього вкажіть свій шлях
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        Configuration.browser = "chrome";
+        Configuration.browserSize = "1920x1080";
     }
 
     @Test
     public void fetchCelebritiesWithTodayBirthday() {
-        driver.get("https://www.imdb.com");
-        System.out.println("IMDb homepage opened.");
-
+        openIMDbHomepage();
         openBornTodayMenu();
+        ElementsCollection celebrities = fetchCelebrityElements();
+        printCelebrityInfo(celebrities, 3);
+    }
 
-        List<WebElement> celebrities = fetchCelebrityElements();
-        for (int i = 0; i < Math.min(3, celebrities.size()); i++) {
-            printCelebrityInfo(celebrities.get(i), i + 1);
+    private void openIMDbHomepage() {
+        Selenide.open("https://www.imdb.com");
+        System.out.println("IMDb homepage opened.");
+    }
+
+
+    private void openBornTodayMenu() {
+        clickMenuButton();
+        clickBornTodayLink();
+    }
+
+
+    private void clickMenuButton() {
+        try {
+            WebElement menuButton = Selenide.$(By.id("imdbHeader-navDrawerOpen"));
+            menuButton.click();
+            System.out.println("Menu opened.");
+        } catch (Exception e) {
+            System.err.println("Error opening menu: " + e.getMessage());
         }
     }
 
-    private void openBornTodayMenu() {
+    private void clickBornTodayLink() {
         try {
-            WebElement menuButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("imdbHeader-navDrawerOpen")));
-            menuButton.click();
-            System.out.println("Menu opened.");
-
-            WebElement bornTodayLink = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()='Born Today']")));
+            WebElement bornTodayLink = Selenide.$(By.xpath("//span[text()='Born Today']"));
             bornTodayLink.click();
             System.out.println("'Born Today' page opened.");
         } catch (Exception e) {
-            System.err.println("Error opening 'Born Today' menu: " + e.getMessage());
+            System.err.println("Error opening 'Born Today' link: " + e.getMessage());
         }
     }
 
-    private List<WebElement> fetchCelebrityElements() {
-        try {
-            wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("div.sc-77f37b3d-1.gJmTWZ")));
-            List<WebElement> celebrities = driver.findElements(By.cssSelector("div.sc-77f37b3d-1.gJmTWZ"));
+    private ElementsCollection fetchCelebrityElements() {
 
+        try {
+            ElementsCollection celebrities = Selenide.$$(
+                    By.cssSelector("div.sc-8a39b693-3.ekUbVT")
+            );
             if (celebrities.isEmpty()) {
-                System.out.println("No celebrities found. Check your selectors.");
+                System.out.println("No celebrities found.");
             } else {
                 System.out.println("Found " + celebrities.size() + " celebrities.");
             }
-
             return celebrities;
         } catch (Exception e) {
             System.err.println("Error fetching celebrity elements: " + e.getMessage());
-            return List.of();
+            return Selenide.$$(By.cssSelector("div.sc-8a39b693-3.ekUbVT"));
         }
     }
 
-    private void printCelebrityInfo(WebElement celebrity, int rank) {
+    private void printCelebrityInfo(ElementsCollection celebrities, int limit) {
+        for (int i = 0; i < Math.min(limit, celebrities.size()); i++) {
+            WebElement celebrity = celebrities.get(i);
+            String name = getCelebrityName(celebrity);
+            String professions = getCelebrityProfessions(celebrity);
+            String famousMovie = getCelebrityFamousMovie(celebrity);
+
+            System.out.printf("%d. %s - Professions: %s - Famous Movie: %s%n", i + 1, name, professions, famousMovie);
+        }
+    }
+
+    private String getCelebrityName(WebElement celebrity) {
         try {
-            String name = celebrity.findElement(By.cssSelector("div.sc-9b5cbdfc-2.jHuaUr")).getText();
-            String famousMovie = celebrity.findElements(By.cssSelector("a[href*='/title/']")).stream()
+            return celebrity.findElement(By.cssSelector("h3.ipc-title__text")).getText();
+        } catch (Exception e) {
+            System.err.println("Error fetching celebrity name: " + e.getMessage());
+            return "Unknown";
+        }
+    }
+
+    private String getCelebrityProfessions(WebElement celebrity) {
+        try {
+            List<WebElement> professions = celebrity.findElements(By.cssSelector("ul.ipc-inline-list"));
+            return professions.stream()
+                    .map(WebElement::getText)
+                    .collect(Collectors.joining(", "));
+        } catch (Exception e) {
+            System.err.println("Error fetching celebrity professions: " + e.getMessage());
+            return "Unknown";
+        }
+    }
+
+    private String getCelebrityFamousMovie(WebElement celebrity) {
+        try {
+            return celebrity.findElements(By.cssSelector("a[data-testid='nlib-known-for-title']"))
+                    .stream()
                     .findFirst()
                     .map(WebElement::getText)
                     .orElse("No famous movie listed");
-
-            System.out.printf("%d. %s - Famous Movie: %s%n", rank, name, famousMovie);
         } catch (Exception e) {
-            System.err.println("Error fetching celebrity info: " + e.getMessage());
+            System.err.println("Error fetching famous movie: " + e.getMessage());
+            return "Unknown";
         }
     }
 
     @AfterClass
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
+
+        if (WebDriverRunner.hasWebDriverStarted()) {
+            WebDriverRunner.getWebDriver().quit();
         }
     }
 }
