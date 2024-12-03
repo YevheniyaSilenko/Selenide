@@ -10,7 +10,6 @@ dependencies {
     implementation 'com.codeborne:selenide:6.18.0'
     testImplementation 'org.testng:testng:7.9.0'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
-
 }
 
 test {
@@ -18,5 +17,4 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
-
 }
