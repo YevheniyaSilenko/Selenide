@@ -13,14 +13,14 @@ public class IMDbBirthdays {
 
         SelenideElement bornTodayElement = $x("//span[text()='Born Today']");
 
-        ElementsCollection celebrities = $$("div.sc-7c95f518-3.krmPLY");
+        ElementsCollection celebrities = $$(".ipc-metadata-list .krmPLY");
 
         int count = 0;
         for (SelenideElement celebrity : celebrities) {
             if (count >= 3) break;
 
-            String name = celebrity.$("h3.ipc-title__text").getText();
-            String professions = celebrity.$$(".ipc-inline-list__item").stream()
+            String name = celebrity.$(".ipc-title").getText();
+            String professions = celebrity.$$(".ipc-inline-list").stream()
                     .map(element -> element.getText())
                     .reduce((first, second) -> first + ", " + second)
                     .orElse("No professions listed");
